@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menú Eventos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#fdf8f0; --white:#fff;
+    --gold:#b8860b; --gold-light:#fdf3d7; --gold-mid:#d4a843;
+    --dark:#1a1209; --text:#2a2010; --text-light:#9a8a6a; --border:#e8dfc8;
+    --shadow:0 4px 24px rgba(0,0,0,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+  #menu-view { max-width:480px; margin:0 auto; min-height:100vh; background:var(--white); box-shadow:var(--shadow); }
+
+  .loading-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:16px; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { font-size:14px; color:var(--text-light); }
+
+  /* Hero especial para eventos */
+  .menu-hero {
+    background:linear-gradient(160deg, #1a1209 0%, #2d1f0a 60%, #3d2b0f 100%);
+    padding:48px 32px 36px; position:relative; overflow:hidden;
+  }
+  .menu-hero::before { content:'✦'; position:absolute; top:20px; right:28px; font-size:40px; color:rgba(212,168,67,0.2); }
+  .menu-hero::after { content:'✦'; position:absolute; bottom:20px; left:20px; font-size:24px; color:rgba(212,168,67,0.15); }
+  .hero-divider { width:48px; height:2px; background:var(--gold-mid); margin:12px 0; position:relative; z-index:1; }
+
+  .logo-hero { width:72px; height:72px; border-radius:16px; object-fit:contain; background:rgba(255,255,255,0.1); padding:6px; margin-bottom:14px; position:relative; z-index:1; box-shadow:0 4px 16px rgba(0,0,0,0.3); display:none; }
+  .business-name { font-family:'Playfair Display',serif; font-size:30px; color:white; line-height:1.2; position:relative; z-index:1; }
+  .business-tagline { color:rgba(255,255,255,0.6); font-size:13px; margin-top:6px; font-weight:300; position:relative; z-index:1; }
+  .menu-badge { display:inline-block; background:var(--gold-mid); color:var(--dark); font-size:11px; font-weight:600; padding:4px 14px; border-radius:20px; margin-top:14px; position:relative; z-index:1; letter-spacing:0.5px; }
+
+  .menu-nav { display:flex; overflow-x:auto; padding:0 16px; border-bottom:1px solid var(--border); background:var(--white); position:sticky; top:0; z-index:10; scrollbar-width:none; }
+  .menu-nav::-webkit-scrollbar { display:none; }
+  .nav-tab { flex-shrink:0; padding:14px 16px; font-size:13px; font-weight:500; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+  .nav-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+  .menu-section { padding:20px 20px 12px; display:none; }
+  .menu-section.active { display:block; }
+  .section-title { font-family:'Playfair Display',serif; font-size:20px; margin-bottom:4px; color:var(--dark); }
+  .section-desc { font-size:12px; color:var(--text-light); margin-bottom:16px; }
+
+  .menu-item { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); animation:fadeUp 0.3s ease; }
+  .menu-item:last-child { border-bottom:none; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .menu-item.has-photo { flex-direction:column; align-items:stretch; padding:0; border-radius:14px; border:1px solid var(--border); overflow:hidden; margin-bottom:12px; background:white; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .item-photo { width:100%; height:170px; object-fit:cover; display:block; }
+  .item-card-body { display:flex; align-items:center; padding:12px 14px; gap:10px; }
+  .item-thumb { width:44px; height:44px; border-radius:12px; background:var(--gold-light); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .item-info { flex:1; }
+  .item-name { font-size:15px; font-weight:500; color:var(--dark); }
+  .item-desc { font-size:12px; color:var(--text-light); margin-top:2px; line-height:1.4; }
+  .item-price { font-size:16px; font-weight:600; color:var(--gold); flex-shrink:0; }
+
+  .menu-footer { text-align:center; padding:28px 20px; border-top:1px solid var(--border); color:var(--text-light); font-size:12px; }
+  .footer-star { color:var(--gold-mid); margin:0 4px; }
+</style>
+</head>
+<body>
+<div id="menu-view">
+  <div class="loading-screen" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Cargando menú...</div>
+  </div>
+  <div id="menu-content" style="display:none">
+    <div class="menu-hero">
+      <img id="logo-display" class="logo-hero" src="" alt="Logo">
+      <div class="business-name" id="display-name"></div>
+      <div class="hero-divider"></div>
+      <div class="business-tagline" id="display-tagline"></div>
+      <span class="menu-badge">✦ Menú Eventos ✦</span>
+    </div>
+    <nav class="menu-nav" id="menu-nav"></nav>
+    <div id="menu-sections"></div>
+    <div class="menu-footer" id="display-footer"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCbqMD5ZPpH9Px2arnTcryEmBfSendjR5w",
+  authDomain: "menu-cb636.firebaseapp.com",
+  projectId: "menu-cb636",
+  storageBucket: "menu-cb636.firebasestorage.app",
+  messagingSenderId: "857625782494",
+  appId: "1:857625782494:web:b2fc31dd7c6f74604aba4f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Documento separado "eventos" en Firestore
+onSnapshot(doc(db, "menu", "eventos"), (snap) => {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('menu-content').style.display = 'block';
+  if (snap.exists()) renderMenu(snap.data());
+  else {
+    document.getElementById('display-name').textContent = 'Menú de Eventos';
+    document.getElementById('display-tagline').textContent = 'Próximamente';
+    document.getElementById('menu-sections').innerHTML = '<div style="text-align:center;padding:48px 24px;color:#9a8a6a;font-size:14px">El menú de eventos estará disponible pronto ✨</div>';
+  }
+}, () => {
+  document.getElementById('loading').innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:14px">No se pudo cargar el menú.</div>';
+});
+
+function renderMenu(data) {
+  document.getElementById('display-name').textContent = data.name || '';
+  document.getElementById('display-tagline').textContent = data.tagline || '';
+  document.getElementById('display-footer').textContent = data.footer || '';
+
+  const logoEl = document.getElementById('logo-display');
+  if (data.logo) { logoEl.src = data.logo; logoEl.style.display = 'block'; }
+  else logoEl.style.display = 'none';
+
+  const nav = document.getElementById('menu-nav');
+  const sections = document.getElementById('menu-sections');
+  nav.innerHTML = ''; sections.innerHTML = '';
+
+  (data.categories || []).forEach((cat, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'nav-tab'+(i===0?' active':'');
+    tab.textContent = cat.label;
+    tab.onclick = () => {
+      document.querySelectorAll('.nav-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+      document.querySelectorAll('.menu-section').forEach(s => s.classList.toggle('active', s.id==='sec-'+cat.id));
+    };
+    nav.appendChild(tab);
+
+    const sec = document.createElement('div');
+    sec.className = 'menu-section'+(i===0?' active':'');
+    sec.id = 'sec-'+cat.id;
+    const title = cat.label.split(' ').slice(1).join(' ');
+    sec.innerHTML = `
+      <div class="section-title">${title}</div>
+      <div class="section-desc">${(cat.items||[]).length} opciones</div>
+      ${(cat.items||[]).map(item => item.photo ? `
+        <div class="menu-item has-photo">
+          <img class="item-photo" src="${item.photo}" alt="${item.name}">
+          <div class="item-card-body">
+            <div class="item-info"><div class="item-name">${item.name}</div><div class="item-desc">${item.desc||''}</div></div>
+            <div class="item-price">${data.currency||'$'}${item.price}</div>
+          </div>
+        </div>` : `
+        <div class="menu-item">
+          <div class="item-thumb">${item.emoji||'✦'}</div>
+          <div class="item-info"><div class="item-name">${item.name}</div><div class="item-desc">${item.desc||''}</div></div>
+          <div class="item-price">${data.currency||'$'}${item.price}</div>
+        </div>`).join('')}`;
+    sections.appendChild(sec);
+  });
+}
+</script>
+</body>
+</html>
