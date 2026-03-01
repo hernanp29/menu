@@ -171,6 +171,13 @@
 
   .empty { text-align:center; padding:28px 16px; color:var(--text-light); font-size:13px; }
   .empty-icon { font-size:36px; margin-bottom:8px; }
+  .add-cat-btn {
+    width:100%; padding:16px; margin-top:4px;
+    background:var(--green-light); border:2px dashed var(--green-mid);
+    border-radius:14px; color:var(--green); font-size:14px; font-weight:600;
+    cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s;
+  }
+  .add-cat-btn:active { background:var(--green); color:white; }
 </style>
 </head>
 <body>
@@ -207,6 +214,7 @@
 <!-- PRODUCTS -->
 <div class="screen" id="screen-products">
   <div id="products-list"><div class="empty"><div class="empty-icon">⏳</div>Cargando...</div></div>
+  <button class="add-cat-btn" onclick="openNewCategorySheet()">＋ Nueva categoría</button>
 </div>
 
 <!-- SETTINGS -->
@@ -326,6 +334,25 @@
     <div class="inline-field">
       <input class="field-input" id="field-input-value" style="font-size:16px">
       <button class="btn-save-sheet" style="margin-top:14px;width:100%" onclick="saveField()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CATEGORY SHEET -->
+<div class="sheet-overlay" id="category-sheet">
+  <div class="sheet" style="max-height:50vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Nueva Categoría</div>
+      <button class="sheet-close" onclick="closeSheet('category-sheet')">✕</button>
+    </div>
+    <div class="inline-field">
+      <div class="field-label" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-mid);margin-bottom:6px;">Ícono y nombre</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input class="field-input" id="cat-emoji-input" placeholder="🍮" style="width:64px;text-align:center;font-size:22px;padding:10px;">
+        <input class="field-input" id="cat-name-input" placeholder="Ej: Postres" style="flex:1">
+      </div>
+      <button class="btn-save-sheet" style="margin-top:14px;width:100%" onclick="saveNewCategory()">Crear categoría</button>
     </div>
   </div>
 </div>
@@ -647,6 +674,26 @@ window.shareQR = function() {
   const url = document.getElementById('qr-url-label').textContent;
   if(navigator.share) navigator.share({title:'Menú Digital',url});
   else navigator.clipboard.writeText(url).then(()=>showToast('📋 URL copiada'));
+};
+
+// ─── NEW CATEGORY ───
+window.openNewCategorySheet = function() {
+  document.getElementById('cat-emoji-input').value = '';
+  document.getElementById('cat-name-input').value = '';
+  openSheet('category-sheet');
+  setTimeout(() => document.getElementById('cat-name-input').focus(), 300);
+};
+
+window.saveNewCategory = function() {
+  const emoji = document.getElementById('cat-emoji-input').value.trim() || '🍽';
+  const name = document.getElementById('cat-name-input').value.trim();
+  if (!name) { showToast('⚠️ Ingresá un nombre'); return; }
+  const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now();
+  window.data.categories.push({ id, label: emoji + ' ' + name, items: [] });
+  cloudSave(window.data);
+  closeSheet('category-sheet');
+  renderProducts();
+  showToast('✅ Categoría creada');
 };
 
 // ─── NAV ───
