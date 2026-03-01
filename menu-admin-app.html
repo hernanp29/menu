@@ -474,7 +474,10 @@ window.renderProducts = function() {
     card.innerHTML = `
       <div class="card-header">
         <div class="card-title">${cat.label}</div>
-        <div class="card-count">${cat.items.length} items</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="card-count">${cat.items.length} items</div>
+          <button onclick="deleteCategory('${cat.id}')" style="background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Eliminar</button>
+        </div>
       </div>
       <div id="pl-${cat.id}">
         ${cat.items.length===0 ? `<div class="empty"><div class="empty-icon">📭</div>Sin productos</div>` :
@@ -694,6 +697,16 @@ window.saveNewCategory = function() {
   closeSheet('category-sheet');
   renderProducts();
   showToast('✅ Categoría creada');
+};
+
+window.deleteCategory = function(catId) {
+  const cat = window.data.categories.find(c => c.id === catId);
+  if (!cat) return;
+  if (!confirm(`¿Eliminar la categoría "${cat.label}" y todos sus productos?`)) return;
+  window.data.categories = window.data.categories.filter(c => c.id !== catId);
+  cloudSave(window.data);
+  renderProducts();
+  showToast('🗑 Categoría eliminada');
 };
 
 // ─── NAV ───
